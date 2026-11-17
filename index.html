@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2c1d0e">
+<title>Criação de Galinhas Caipiras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#fff8ec; --cream2:#f6ead3; --brown:#3b2410; --brown2:#7a5a3a; --muted:#a8916f;
+  --green:#2f7d32; --green2:#e3f1dd; --orange:#e98a00; --red:#c62828; --red2:#fdecea;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#2c1d0e;overflow:hidden}
+body{font-family:"Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--brown);
+  display:flex;justify-content:center;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+#bgblur{position:fixed;inset:-40px;background:url(01.webp) center/cover;filter:blur(28px) brightness(.45);z-index:0}
+#app{position:relative;z-index:1;width:100%;max-width:480px;height:100%;height:100dvh;display:flex;flex-direction:column;background:var(--cream);overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.5)}
+
+/* ---------- STAGE ---------- */
+#stage{position:relative;flex:1 1 auto;min-height:44%;overflow:hidden;background:#cfe6f5;border-radius:0 0 28px 28px;cursor:pointer}
+#stage .layer{position:absolute;left:0;top:0;width:1672px;height:941px;transform-origin:0 0;opacity:0;will-change:transform,opacity;pointer-events:none}
+#stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(30,18,6,.62) 0,rgba(30,18,6,0) calc(var(--sat) + 110px)),
+             linear-gradient(to top,rgba(30,18,6,.28) 0,rgba(30,18,6,0) 90px)}
+#top{position:absolute;left:0;right:0;top:0;z-index:5;padding:calc(var(--sat) + 12px) 14px 0;pointer-events:none}
+#segs{display:flex;gap:4px;margin-bottom:10px}
+#segs i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.35);overflow:hidden;position:relative}
+#segs i b{position:absolute;inset:0;width:0;background:#fff;border-radius:3px}
+#chip{display:inline-flex;align-items:center;gap:8px;pointer-events:auto;background:rgba(255,255,255,.95);color:var(--brown);
+  font-weight:800;font-size:15px;padding:7px 14px 7px 8px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.18);border:0;font-family:inherit}
+#chip .em{font-size:18px;width:28px;height:28px;display:grid;place-items:center;background:var(--cream2);border-radius:50%}
+#chip .n{color:var(--brown2);font-weight:700;font-size:13px}
+#chip.swap{animation:chipIn .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes chipIn{from{transform:translateY(-10px) scale(.9);opacity:0}}
+
+#pausedBadge{position:absolute;z-index:6;left:50%;top:32%;transform:translate(-50%,-50%) scale(.8);width:84px;height:84px;border-radius:50%;
+  background:rgba(30,18,6,.55);display:grid;place-items:center;opacity:0;transition:.3s;pointer-events:none;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#pausedBadge svg{width:38px;height:38px;fill:#fff;margin-left:5px}
+.paused #pausedBadge{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#loading{position:absolute;z-index:6;right:14px;bottom:14px;background:rgba(30,18,6,.65);color:#fff;font-weight:700;font-size:13px;
+  padding:6px 12px;border-radius:999px;display:none;align-items:center;gap:8px}
+#loading.on{display:flex}
+#loading::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid #fff;border-right-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- CARDS ---------- */
+#cards{position:absolute;left:12px;right:12px;bottom:12px;z-index:4;pointer-events:none}
+.card{position:absolute;left:0;right:0;bottom:0;background:rgba(255,251,243,.96);border-radius:20px;padding:12px 14px 12px;
+  box-shadow:0 10px 30px rgba(40,20,0,.28);transform:translateY(24px) scale(.97);opacity:0;
+  transition:transform .55s cubic-bezier(.2,1.25,.35,1),opacity .4s ease;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.card.on{transform:none;opacity:1}
+.card h3{font-size:14px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:var(--green);margin:0 2px 6px;display:flex;align-items:center;gap:6px}
+.card.alert{background:rgba(255,246,238,.97);border:2px solid #f3b27a}
+.card.alert h3{color:#b54700}
+.card.stop{background:rgba(255,244,243,.97);border:2px solid #ef9a9a}
+.card.stop h3{color:var(--red)}
+.card.tip h3{color:var(--orange)}
+.it{display:flex;align-items:center;gap:10px;padding:0 2px;max-height:0;overflow:hidden;opacity:0;transform:translateX(-14px);transition:opacity .45s ease .1s,transform .5s cubic-bezier(.2,1.3,.4,1) .1s,max-height .45s ease,padding .45s ease}
+.it.on{opacity:1;transform:none;max-height:80px;padding:5px 2px}
+.it .ic{flex:0 0 36px;height:36px;border-radius:12px;background:var(--cream2);display:grid;place-items:center;font-size:21px}
+.alert .it .ic{background:#ffe3c9}.stop .it .ic{background:#ffd9d6}
+.it .tx{font-size:17px;font-weight:700;line-height:1.2;color:var(--brown)}
+.it .tx small{display:block;font-size:14px;font-weight:600;color:var(--brown2);margin-top:1px}
+.it.now .ic{animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.4)}100%{transform:scale(1)}}
+.big{display:flex;align-items:center;gap:12px;padding:4px 2px}
+.big .ic{flex:0 0 52px;height:52px;border-radius:16px;background:var(--green2);display:grid;place-items:center;font-size:30px}
+.alert .big .ic{background:#ffe3c9}.stop .big .ic{background:#ffd9d6}
+.big .tx{font-size:19px;font-weight:800;line-height:1.22}
+.big .tx small{display:block;font-size:15px;font-weight:700;color:var(--brown2);margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;padding:2px}
+.chips span{font-size:16px;font-weight:800;padding:7px 12px;border-radius:999px;background:#fff;border:2px solid #e9d9bf;display:none}
+.chips span.on{display:inline-block;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.chips span.now{border-color:var(--orange);background:#fff3df}
+.note{font-size:16px;font-weight:800;color:var(--green);opacity:0;max-height:0;overflow:hidden;transition:.5s}
+.note.on{opacity:1;max-height:40px;margin-top:10px}
+/* cycle */
+.cyc{position:relative;height:200px;margin:2px auto 0;max-width:300px}
+.cyc svg{position:absolute;inset:0;width:100%;height:100%}
+.cyc .nd{position:absolute;width:100px;text-align:center;transform:translate(-50%,-50%) scale(.85);opacity:.35;transition:.5s cubic-bezier(.2,1.4,.4,1)}
+.cyc .nd .ic{width:50px;height:50px;margin:0 auto 3px;border-radius:50%;background:var(--cream2);display:grid;place-items:center;font-size:27px;border:3px solid transparent;transition:.4s}
+.cyc .nd .tx{font-size:14.5px;font-weight:800;line-height:1.1}
+.cyc .nd.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.cyc .nd.now .ic{border-color:var(--green);background:var(--green2);box-shadow:0 0 0 6px rgba(47,125,50,.15)}
+.cyc .ring{stroke:#d9c6a6;stroke-width:3;fill:none;stroke-dasharray:6 7}
+.cyc .ring2{stroke:var(--green);stroke-width:4;fill:none;stroke-linecap:round;transition:stroke-dashoffset .9s ease}
+
+/* ---------- CAPTION ---------- */
+#cap{flex:0 0 auto;padding:16px 22px 6px;min-height:150px;display:flex;align-items:flex-start}
+#line{font-size:clamp(20px,5.6vw,24px);line-height:1.38;font-weight:800;color:var(--muted);letter-spacing:-.005em}
+#line.in{animation:lineIn .45s ease}
+@keyframes lineIn{from{opacity:0;transform:translateY(8px)}}
+#line .w{transition:color .25s}
+#line .w.on{color:var(--brown)}
+#line .w.key{color:#c9b089}
+#line .w.key.on{color:var(--green)}
+
+/* ---------- CONTROLS ---------- */
+#ctl{flex:0 0 auto;padding:4px 18px calc(var(--sab) + 14px)}
+#bar{position:relative;height:28px;display:flex;align-items:center;cursor:pointer;touch-action:none}
+#bar .tr{position:absolute;left:0;right:0;height:6px;border-radius:3px;background:#eadbc2;overflow:hidden}
+#bar .fl{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--green);border-radius:3px}
+#bar .th{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--green);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);left:0}
+#bar .mk{position:absolute;top:50%;width:3px;height:6px;margin-top:-3px;background:var(--cream);z-index:1}
+#times{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--brown2);margin-top:-2px}
+#btns{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.btn{border:0;background:none;font-family:inherit;color:var(--brown);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12.5px;font-weight:800;min-width:72px;padding:6px 4px;border-radius:14px;cursor:pointer}
+.btn:active{background:var(--cream2)}
+.btn svg{width:28px;height:28px;fill:none;stroke:var(--brown);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+#play{width:74px;height:74px;border-radius:50%;background:var(--green);border:0;display:grid;place-items:center;box-shadow:0 8px 20px rgba(47,125,50,.4);cursor:pointer;transition:transform .15s}
+#play:active{transform:scale(.93)}
+#play svg{width:32px;height:32px;fill:#fff}
+#play .pi{margin-left:4px}
+#play .pa{display:none}
+.playing #play .pi{display:none}.playing #play .pa{display:block}
+
+/* ---------- OVERLAYS ---------- */
+.ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;transition:opacity .6s,visibility .6s}
+.ov.hide{opacity:0;visibility:hidden}
+.ov .bgimg{position:absolute;inset:0;background:url(01.webp) 30% center/cover;animation:kb 26s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1.05)}to{transform:scale(1.18) translateX(-3%)}}
+.ov .shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(32,18,4,.96) 8%,rgba(32,18,4,.72) 42%,rgba(32,18,4,.08) 72%)}
+.ov .in{position:relative;padding:0 26px calc(var(--sab) + 30px)}
+.kick{display:inline-block;background:var(--orange);color:#fff;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-radius:999px;margin-bottom:14px}
+.ov h1{font-size:clamp(32px,9vw,40px);line-height:1.05;font-weight:900;letter-spacing:-.01em;margin-bottom:10px;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.ov p.sub{font-size:18px;font-weight:700;opacity:.92;line-height:1.35;margin-bottom:22px}
+.go{width:100%;border:0;border-radius:20px;background:var(--green);color:#fff;font-family:inherit;font-size:22px;font-weight:900;padding:18px 20px;
+  display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 10px 28px rgba(47,125,50,.5);cursor:pointer;animation:breathe 2.4s ease-in-out infinite}
+.go svg{width:26px;height:26px;fill:#fff}
+@keyframes breathe{50%{transform:scale(1.03)}}
+.go.sec{background:rgba(255,255,255,.14);box-shadow:none;animation:none;font-size:18px;padding:14px;margin-top:10px;border:2px solid rgba(255,255,255,.35)}
+.meta{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:15px;font-weight:700;opacity:.88;flex-wrap:wrap}
+#end .list{background:rgba(255,255,255,.1);border-radius:18px;padding:12px 16px;margin:4px 0 20px}
+#end .list div{font-size:17px;font-weight:700;padding:4px 0;display:flex;gap:10px;align-items:center}
+#end .bgimg{background-image:url(07.webp);animation:none;transform:scale(1.05)}
+
+/* sheet */
+#sheet{position:absolute;inset:0;z-index:15;visibility:hidden}
+#sheet .dim{position:absolute;inset:0;background:rgba(30,18,6,.5);opacity:0;transition:.3s}
+#sheet .pn{position:absolute;left:0;right:0;bottom:0;max-height:82%;overflow:auto;background:var(--cream);border-radius:26px 26px 0 0;
+  padding:10px 16px calc(var(--sab) + 18px);transform:translateY(100%);transition:transform .4s cubic-bezier(.2,1,.3,1)}
+#sheet.on{visibility:visible}#sheet.on .dim{opacity:1}#sheet.on .pn{transform:none}
+#sheet .grab{width:44px;height:5px;border-radius:3px;background:#dcc9aa;margin:2px auto 12px}
+#sheet h2{font-size:20px;font-weight:900;margin:0 6px 10px}
+.ch{width:100%;border:0;background:#fff;font-family:inherit;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;margin-bottom:8px;text-align:left;cursor:pointer;color:var(--brown)}
+.ch .em{flex:0 0 44px;height:44px;border-radius:14px;background:var(--cream2);display:grid;place-items:center;font-size:24px}
+.ch .t{flex:1;font-size:18px;font-weight:800}
+.ch .tm{font-size:14px;font-weight:700;color:var(--brown2)}
+.ch.cur{background:var(--green2);outline:2px solid var(--green)}
+@media (min-height:760px){#cap{min-height:170px}}
+@media (prefers-reduced-motion:reduce){.go{animation:none}.ov .bgimg{animation:none}}
+</style>
+</head>
+<body>
+<div id="bgblur"></div>
+<div id="app" class="paused">
+  <div id="stage" aria-label="Imagem ilustrativa — toque para pausar ou continuar">
+    <div id="layers"></div>
+    <div id="top">
+      <div id="segs"></div>
+      <button id="chip" aria-label="Ver as partes"><span class="em">👋</span><span class="tt">Boas-vindas</span><span class="n">1/12</span></button>
+    </div>
+    <div id="cards"></div>
+    <div id="pausedBadge"><svg viewBox="0 0 24 24"><path d="M6 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L7.5 3.64A1 1 0 0 0 6 4.5z"/></svg></div>
+    <div id="loading">Carregando…</div>
+  </div>
+
+  <div id="cap"><div id="line" aria-live="polite"></div></div>
+
+  <div id="ctl">
+    <div id="bar" role="slider" aria-label="Posição do áudio"><div class="tr"><div class="fl"></div></div><div class="th"></div></div>
+    <div id="times"><span id="tc">0:00</span><span id="td">8:51</span></div>
+    <div id="btns">
+      <button class="btn" id="back"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Voltar 10s</button>
+      <button id="play" aria-label="Tocar ou pausar"><svg class="pi" viewBox="0 0 24 24"><path d="M6 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L7.5 3.64A1 1 0 0 0 6 4.5z"/></svg><svg class="pa" viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg></button>
+      <button class="btn" id="parts"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>Partes</button>
+    </div>
+  </div>
+
+  <div id="sheet"><div class="dim"></div><div class="pn"><div class="grab"></div><h2>Escolha uma parte</h2><div id="chlist"></div></div></div>
+
+  <div class="ov" id="start">
+    <div class="bgimg"></div><div class="shade"></div>
+    <div class="in">
+      <span class="kick">🎧 Conversa em áudio</span>
+      <h1>Criação de galinhas caipiras</h1>
+      <p class="sub">Saberes, cuidados e práticas sustentáveis para quem cria galinhas no campo.</p>
+      <button class="go" id="goBtn"><svg viewBox="0 0 24 24"><path d="M6 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L7.5 3.64A1 1 0 0 0 6 4.5z"/></svg>Começar a ouvir</button>
+      <div class="meta"><span>⏱️ 9 minutos</span><span>🔊 Aumente o volume</span></div>
+    </div>
+  </div>
+
+  <div class="ov hide" id="end">
+    <div class="bgimg"></div><div class="shade"></div>
+    <div class="in">
+      <span class="kick">✅ Fim da conversa</span>
+      <h1>Obrigado por ouvir!</h1>
+      <p class="sub" style="margin-bottom:12px">Lembre: é o conjunto de cuidados, todos os dias, que faz a criação dar certo.</p>
+      <div class="list">
+        <div>🏠 Galinheiro seguro</div><div>🌿 Espaço para ciscar</div><div>🌽 Ração adequada</div>
+        <div>💧 Água limpa</div><div>🐣 Atenção aos pintinhos</div><div>🩺 Limpeza e orientação do veterinário</div>
+      </div>
+      <button class="go" id="again"><svg viewBox="0 0 24 24"><path d="M6 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L7.5 3.64A1 1 0 0 0 6 4.5z"/></svg>Ouvir de novo</button>
+      <button class="go sec" id="endParts">Escolher uma parte</button>
+    </div>
+  </div>
+</div>
+
+<audio id="au" src="audio.mp3" preload="auto"></audio>
+<script type="text/plain" id="cuesTxt">0.7|1.08|*|Olá!
+1.9|3.47|*|Que bom ter você por aqui.
+4.04|9.78|*|Hoje a nossa conversa é sobre uma atividade que faz parte da vida de muitas famílias do campo:
+10.21|12.24||a criação de galinhas caipiras.
+12.87|16.29|*|Quem cria galinhas sabe como elas são importantes.
+16.81|18.45|*|Tem o ovo para colocar na mesa,
+18.85|20.59||a carne para alimentar a família
+21.02|22.02||e, muitas vezes,
+22.3|24.39||uma renda extra com a venda da produção.
+25.07|26.48|*|Mas, para a criação dar certo,
+26.85|28.96||não basta soltar as aves no terreiro
+29.33|30.53||e jogar um pouco de milho.
+31.09|33.56|*|Elas precisam de cuidado todos os dias.
+34.55|36.04|*|E é disso que a gente vai conversar:
+36.72|40.34||como criar galinhas de um jeito que aproveite o que a propriedade oferece,
+40.79|42.89|*|sem deixar de lado a alimentação,
+43.38|44.04||a limpeza
+44.38|45.72||e a saúde dos animais.
+46.23|47.93|*|Vamos começar pelo planejamento.
+48.53|49.99|*|Antes de comprar os pintinhos,
+50.39|50.8||pense:
+51.16|52.44|*|você quer produzir ovos,
+52.89|53.29||carne
+53.58|54.25||ou os dois?
+54.82|57.02|*|Quantas aves cabem no espaço que você tem?
+57.55|59.37|*|E quanto poderá gastar com ração,
+59.75|61.4||vacinas e outros cuidados?
+61.75|64.44|*|Comprar pintinhos de um lugar confiável
+64.91|67.94||e não colocar aves demais num galinheiro pequeno
+68.38|70.8||já ajuda a evitar muitos problemas.
+71.7|74.75|*|Agora imagine o lugar onde essas galinhas vão viver.
+75.62|78.29|*|Assim como a gente precisa de uma casa segura,
+78.81|81.37||elas também precisam de abrigo contra chuva,
+81.68|82.6||vento forte
+82.92|84.03||e outros animais.
+84.81|88.16|*|O galinheiro deve ter um espaço para dormir e descansar,
+88.84|90.77||ninhos limpos para botar ovos
+91.19|93.17|*|e lugares protegidos para comer
+93.5|93.98||e beber.
+94.72|98.08|*|Também é bom ter uma área cercada do lado de fora,
+98.5|99.17||com sombra,
+99.45|100.18||vegetação
+100.59|102.51|*|e um cantinho de terra ou areia
+102.82|103.94||onde possam ciscar
+104.25|105.51||e tomar banho de areia.
+106.14|110.75|*|Dá para aproveitar materiais que já existem na propriedade na hora de construir.
+111.38|113.37|*|Só tome cuidado com pontas,
+113.63|114.26||ferrugem
+114.53|118.95||e madeiras tratadas com produtos que possam fazer mal às aves.
+119.64|120.16|*|E lembre:
+120.53|122.07||espaço é importante.
+122.53|124.23|*|Galinhas apertadas demais
+124.52|125.95||ficam mais estressadas
+126.24|128.4||e o ambiente suja mais depressa.
+128.6|131.25|*|Quando os pintinhos são bem pequenos,
+131.62|134.35||os cuidados precisam ser ainda maiores.
+134.96|136.27|*|Nos primeiros dias,
+136.61|138.35||eles precisam de aquecimento,
+138.72|139.55||água limpa,
+139.91|141.88||alimento próprio para essa idade
+142.19|144.39||e proteção contra correntes de ar.
+145.07|148.68|*|Quer saber uma maneira simples de perceber se a temperatura está boa?
+149.32|150.74|*|Observe os pintinhos.
+151.21|154.35|*|Se ficam todos amontoados perto da fonte de calor,
+154.78|155.87||podem estar com frio.
+156.46|158.69|*|Se fogem dela e ficam afastados,
+159.11|160.35||podem estar com calor.
+161.05|163.93|*|Quando se espalham pelo espaço de maneira tranquila,
+164.28|165.2||é um bom sinal.
+165.45|170.11|*|Um círculo de proteção também ajuda a impedir que se amontoem nos cantos.
+170.81|171.84|*|Conforme crescem,
+172.23|174.15||as aves precisam de mais espaço.
+174.91|176.38|*|A saída para a área externa
+176.79|178.34||deve acontecer aos poucos,
+178.67|181.26||de acordo com a idade e as condições do tempo.
+182.01|182.56|*|Depois,
+182.9|185.35||os cuidados mudam conforme a finalidade:
+185.91|186.84|*|algumas aves
+187.12|188.91||vão crescer para produzir carne;
+189.42|193.46|*|outras vão precisar de atenção especial para a postura de ovos.
+194.31|196.34|*|E já que falamos do espaço de fora,
+196.74|197.94||vale lembrar uma coisa:
+198.37|200.04|*|deixar as galinhas ciscar é bom,
+200.53|203.04||mas o terreiro também precisa de cuidados.
+203.65|207.2|*|Uma ideia é dividir a área em partes, chamadas piquetes,
+207.5|210.01||e mudar as aves de lugar de tempos em tempos.
+210.57|211.89|*|Enquanto uma parte é usada,
+212.2|213.18||a outra descansa.
+213.78|214.82|*|Retirar as fezes,
+215.12|218.28||evitar locais muito úmidos e cuidar da drenagem
+218.58|221.19||ajuda a diminuir a contaminação do ambiente.
+221.7|222.43|*|Mas atenção:
+222.85|225.11||deixar o terreno descansar, sozinho,
+225.44|227.2||não elimina todos os parasitas.
+227.55|229.31|*|Agora vamos falar de comida.
+230.34|233.6|*|Uma galinha bem alimentada tem mais condições de crescer,
+233.89|235.84||se manter saudável e produzir.
+236.6|239.24|*|O milho e o sorgo fornecem energia.
+240.16|240.9|*|A abóbora,
+241.18|243.15||a couve e a batata-doce,
+243.58|245.56||quando preparadas de maneira adequada,
+245.92|247.81||podem complementar a alimentação.
+248.49|251.21|*|Também é possível cultivar plantas na propriedade
+251.48|252.78||para oferecer às aves.
+253.47|255.42|*|Mas tem um detalhe muito importante:
+255.99|258.0|*|esses alimentos são complementos.
+258.55|261.07|*|Eles não substituem uma ração equilibrada,
+261.45|262.44||própria para a idade
+262.81|264.36||e a finalidade das galinhas.
+264.67|266.87|*|As poedeiras, por exemplo,
+267.37|269.86||precisam de atenção especial ao cálcio,
+270.32|273.12||que participa da formação da casca dos ovos.
+280.55|283.13|*|Agora, uma parte muito importante também.
+283.7|284.27|*|Lembre-se:
+284.71|287.69||comida boa precisa vir acompanhada de água boa.
+288.26|290.69|*|Imagine beber água suja num dia de calor.
+291.16|292.38|*|Ninguém quer, não é?
+292.87|294.52|*|Com as galinhas é a mesma coisa.
+294.92|298.76|*|Elas precisam encontrar água limpa e fresca sempre que sentirem sede.
+299.27|299.7|*|Por isso,
+300.01|302.46||mantenha bebedouros em quantidade suficiente,
+302.81|305.16||numa altura que facilite o acesso das aves,
+305.51|307.17||e faça a limpeza com frequência.
+307.68|309.95|*|Bebedouros colocados diretamente no chão
+310.24|311.74||sujam com mais facilidade.
+312.28|314.78|*|A água também pode precisar de tratamento,
+315.19|316.07||como a cloração,
+316.43|320.21||seguindo orientação técnica para usar a quantidade correta do produto.
+320.83|322.89|*|Você já percebeu como tudo está ligado?
+323.49|324.68|*|Quando o galinheiro é limpo,
+324.96|327.37||a água é boa e a alimentação é adequada,
+327.73|330.0||fica mais fácil manter as aves saudáveis.
+330.42|332.45|*|E essa é a ideia principal da prevenção:
+332.87|334.7||cuidar antes que a doença apareça.
+335.05|339.6|*|Na prática, isso significa evitar a entrada desnecessária de visitantes no galinheiro,
+340.03|341.68|*|limpar ninhos e equipamentos,
+342.0|345.83|*|guardar a ração onde ratos e aves silvestres não consigam alcançar
+346.19|348.61||e não deixar lixo ou água parada por perto.
+349.11|350.51|*|Se comprar galinhas novas,
+350.79|353.21||não as coloque imediatamente junto das outras.
+353.64|354.09|*|Primeiro,
+354.38|355.76||verifique de onde vieram
+356.06|358.87|*|e mantenha-as separadas por um período de observação,
+359.21|360.56||com orientação sanitária.
+361.1|364.57|*|Também vale dedicar alguns minutos do dia a observar o plantel.
+364.87|367.7|*|Uma galinha saudável costuma se movimentar,
+368.12|369.17||procurar alimento
+369.45|371.52||e ficar atenta ao que acontece ao redor.
+371.96|373.83|*|Se uma ave fica quieta demais,
+374.16|374.92||para de comer,
+375.22|376.33||apresenta diarreia,
+376.64|378.12||dificuldade para respirar
+378.42|379.8||ou mudanças na aparência,
+380.13|381.15||é sinal de alerta.
+381.58|383.24|*|Separe essa ave das demais,
+383.55|386.05||evite movimentar equipamentos entre os grupos
+386.34|388.1||e procure um médico-veterinário.
+388.53|389.82|*|Não dê antibióticos,
+390.09|391.41||remédios contra vermes
+391.7|393.8||ou receitas caseiras por conta própria.
+394.35|397.45|*|Doenças diferentes podem causar sinais parecidos,
+397.82|400.41||e o tratamento errado pode piorar a situação.
+401.08|404.21|*|Entre as doenças que merecem atenção estão Newcastle,
+404.6|405.57||bouba aviária,
+405.9|406.41||Marek,
+406.77|407.38||Gumboro,
+407.72|410.11||coriza infecciosa e coccidiose.
+410.59|412.35|*|Algumas são causadas por vírus,
+412.67|414.73||outras por bactérias ou parasitas.
+415.18|417.37|*|Não é preciso decorar todos esses nomes.
+417.73|419.86|*|O mais importante é lembrar que limpeza,
+420.17|421.34||observação diária,
+421.65|423.55||manejo adequado e vacinação,
+423.83|424.61||quando indicada,
+424.9|426.52||ajudam a proteger a criação.
+427.02|428.45|*|E falando em vacina:
+429.02|432.73|*|não existe um único calendário que sirva para toda propriedade.
+433.31|435.58|*|A necessidade e o momento de vacinar
+435.93|437.11||dependem da região
+437.38|438.86||e das condições da criação.
+439.32|439.78|*|Por isso,
+440.19|443.71||peça a um médico-veterinário que ajude a organizar o calendário.
+444.22|447.5|*|As vacinas precisam ser compradas de locais autorizados,
+447.86|449.83||conservadas na temperatura correta
+450.15|451.87|*|e aplicadas da maneira indicada,
+452.21|454.83||por profissional habilitado ou pessoa treinada.
+455.36|458.21|*|Vacina mal guardada ou aplicada de forma errada
+458.52|460.01||pode não proteger as aves.
+460.38|461.46|*|Antes de terminar,
+461.91|465.43||vamos voltar a uma ideia importante da criação agroecológica:
+465.96|468.63|*|as coisas da propriedade podem trabalhar juntas.
+469.15|472.75|*|Parte dos alimentos cultivados pode ajudar a alimentar as galinhas.
+473.2|473.87|*|O esterco,
+474.18|477.89||misturado a materiais secos e passado por uma compostagem bem feita,
+478.31|479.83||pode virar adubo para o solo.
+480.34|482.93|*|Esse adubo ajuda no cultivo de novas plantas.
+483.4|486.02|*|Mas o esterco não deve ser usado fresco na horta:
+486.43|488.93||precisa passar por tratamento adequado antes.
+489.42|491.76|*|Viu como pequenos cuidados fazem diferença?
+492.12|493.42|*|Um galinheiro seguro,
+493.77|495.05||espaço para ciscar,
+495.34|496.39||ração adequada,
+496.72|497.45||água limpa,
+497.75|499.08||atenção aos pintinhos,
+499.36|501.94||limpeza e orientação para prevenir doenças.
+502.41|504.95|*|Não é uma coisa só que faz a criação dar certo.
+505.37|506.78|*|É o conjunto de cuidados,
+507.07|508.6||repetidos todos os dias.
+509.08|513.77|*|Esperamos que esta conversa ajude você a cuidar ainda melhor das suas galinhas caipiras.
+514.18|516.67|*|Porque criar galinhas é produzir alimento,
+517.01|520.53||cuidar dos animais e fortalecer a vida das famílias do campo.
+521.04|523.1|*|Obrigado por ouvir e até a próxima!</script>
+<script>
+(()=>{
+const IW=1672, IH=941, DUR=530.66;
+const IMGS=['01','02','03','04','05','06','07'];
+
+/* ---------- CHAPTERS ---------- */
+const CH=[
+ [0,'👋','Boas-vindas'],[46.23,'📝','Planejamento'],[71.7,'🏠','O galinheiro'],[128.6,'🐣','Os pintinhos'],
+ [194.31,'🌿','O terreiro'],[227.55,'🌽','A comida'],[280.55,'💧','A água'],[320.83,'🛡️','Prevenção'],
+ [361.1,'🩺','Sinais de doença'],[427.02,'💉','Vacinas'],[460.38,'♻️','Tudo se aproveita'],[489.42,'✅','Resumo']
+];
+
+/* ---------- CAMERA: [time, image, focusX, focusY, zoom] ---------- */
+const KF=[
+ [0,1,720,470,1.0],[4.04,1,470,430,1.15],[12.87,1,720,560,1.05],[16.81,1,150,760,1.7],[18.85,1,900,700,1.4],
+ [21.02,1,1300,470,1.25],[25.07,1,820,760,1.45],[31.09,1,600,470,1.0],[34.55,1,1350,560,1.15],[40.79,1,850,600,1.0],
+ [46.23,2,520,420,1.0],[51.16,2,880,150,1.75],[54.82,2,880,420,1.35],[57.55,2,130,700,1.7],[59.75,2,1110,690,1.7],
+ [61.75,2,1400,640,1.65],[64.91,2,720,740,1.45],[68.38,2,600,450,1.05],
+ [71.7,3,820,470,1.0],[75.62,3,900,260,1.3],[84.81,3,730,310,1.75],[88.84,3,790,460,1.85],[91.19,3,950,460,1.85],
+ [94.72,3,1330,500,1.3],[100.59,3,1350,640,1.65],[106.14,3,850,450,1.1],[111.38,3,1050,600,1.5],[119.64,3,900,470,1.0],
+ [122.53,7,1000,640,1.35],
+ [128.6,4,700,470,1.0],[131.62,4,840,500,1.3],[136.61,4,840,300,1.7],[138.72,4,1130,600,1.8],[139.91,4,870,690,1.8],
+ [142.19,4,1180,200,1.5],[145.07,4,840,480,1.1],[151.21,4,1470,230,2.1],[156.46,4,1470,660,2.1],[161.05,4,1000,470,1.35],
+ [165.45,4,700,600,1.2],[170.81,3,1340,520,1.25],[182.01,7,930,600,1.2],[189.42,1,590,515,1.9],
+ [194.31,3,1350,580,1.2],[198.37,7,900,640,1.45],[203.65,6,940,450,1.55],[210.57,6,1000,460,1.75],[213.78,6,210,720,1.65],[221.7,6,940,470,1.3],
+ [227.55,5,700,470,1.0],[236.6,5,720,800,1.8],[240.16,5,1000,800,1.8],[248.49,5,1368,680,1.8],[253.47,5,908,480,1.4],
+ [258.55,5,828,200,1.7],[264.67,5,420,810,1.8],
+ [280.55,5,1450,260,1.6],[288.26,5,1440,600,1.65],[294.92,5,1300,520,1.2],[300.01,5,1450,640,1.75],[307.68,5,1300,700,1.35],[312.28,5,1450,160,1.9],
+ [320.83,6,840,470,1.0],[335.05,6,200,300,1.5],[340.03,6,600,130,2.0],[342.0,6,1060,130,2.0],[346.19,6,900,600,1.2],[349.11,6,1380,520,1.8],
+ [361.1,7,700,620,1.1],[364.87,7,950,640,1.5],[371.96,7,1240,700,1.7],[381.58,6,1380,520,1.75],[386.34,6,1440,220,2.0],
+ [388.53,2,1110,690,1.9],[394.35,6,1440,220,1.6],[401.08,7,900,600,1.0],[415.18,1,800,600,1.0],[417.73,6,600,130,1.85],
+ [420.17,6,200,300,1.6],[421.65,6,1440,220,1.85],
+ [427.02,6,1440,220,2.0],[433.31,2,1110,690,1.9],[440.19,6,1440,230,1.8],[444.22,2,1100,690,2.0],[447.86,6,1500,260,2.2],
+ [452.21,6,1420,220,1.8],[455.36,6,840,470,1.0],
+ [460.38,6,600,700,1.0],[465.96,1,1150,560,1.0],[469.15,5,870,820,1.6],[473.2,6,220,720,1.7],[474.18,6,560,760,1.7],
+ [478.31,6,980,720,1.8],[480.34,6,1300,700,1.6],[483.4,6,1200,720,1.3],
+ [489.42,7,800,500,1.0],[492.12,3,800,400,1.3],[493.77,7,930,620,1.45],[495.34,5,908,480,1.6],[496.72,5,1450,600,1.7],
+ [497.75,4,840,480,1.3],[499.36,6,1440,220,1.7],[502.41,7,800,500,1.0],[509.08,1,700,470,1.0]
+].map(k=>({t:k[0],img:k[1]-1,x:k[2],y:k[3],z:k[4]}));
+
+/* ---------- CARDS ---------- */
+const CARDS=[
+ {s:46.23,e:71.4,kind:'',title:'📝 Antes de começar, pense',items:[
+   [51.16,'🥚','Ovos, carne ou os dois?'],[54.82,'📏','Quantas aves cabem no espaço?'],[57.55,'💰','Quanto posso gastar?','ração, vacinas e outros cuidados'],
+   [61.75,'✅','Pintinhos de lugar confiável'],[64.91,'🚫','Sem aves demais no galinheiro']]},
+ {s:84.81,e:105.9,kind:'',title:'🏠 O galinheiro precisa de',items:[
+   [84.81,'😴','Lugar para dormir e descansar'],[88.84,'🥚','Ninhos limpos'],[91.19,'🍽️','Lugar protegido para comer e beber'],
+   [94.72,'🌳','Área cercada com sombra'],[100.59,'⏳','Terra ou areia para ciscar','e tomar banho de areia']]},
+ {s:111.38,e:119.3,kind:'alert',title:'⚠️ Cuidado na construção',items:[
+   [111.38,'📌','Pontas e pregos soltos'],[113.63,'🟤','Ferrugem'],[114.53,'🪵','Madeira tratada com produto','pode fazer mal às aves']]},
+ {s:119.64,e:128.3,kind:'tip',big:['📐','Espaço é importante','Galinha apertada fica estressada e o lugar suja mais rápido']},
+ {s:134.96,e:144.7,kind:'',title:'🐣 Nos primeiros dias',items:[
+   [136.61,'🔥','Aquecimento'],[138.72,'💧','Água limpa'],[139.91,'🌾','Alimento próprio para a idade'],[142.19,'🌬️','Proteção contra vento encanado']]},
+ {s:149.32,e:165.2,kind:'',title:'👀 Observe os pintinhos',items:[
+   [151.21,'🥶','Amontoados perto do calor','podem estar com FRIO'],[156.46,'🥵','Fugindo do calor, afastados','podem estar com CALOR'],
+   [161.05,'😊','Espalhados e tranquilos','é um BOM SINAL']]},
+ {s:165.45,e:170.5,kind:'tip',big:['⭕','Círculo de proteção','Ajuda a impedir que os pintinhos se amontoem nos cantos']},
+ {s:182.01,e:193.9,kind:'',title:'🎯 Cada ave com seu cuidado',items:[
+   [185.91,'🍗','Algumas: produção de carne'],[189.42,'🥚','Outras: postura de ovos','precisam de atenção especial']]},
+ {s:203.65,e:221.4,kind:'',title:'🔄 Piquetes',items:[
+   [203.65,'✂️','Divida a área em partes'],[207.5,'🐔','Mude as aves de lugar','de tempos em tempos'],[210.57,'🌱','Uma parte é usada, a outra descansa'],
+   [213.78,'🧹','Retire as fezes'],[215.12,'💦','Evite lugares úmidos','e cuide da drenagem']]},
+ {s:221.7,e:227.4,kind:'alert',big:['⚠️','Atenção','Só deixar o terreno descansar não elimina todos os parasitas']},
+ {s:236.6,e:253.2,kind:'',title:'🌽 Alimentos da propriedade',items:[
+   [236.6,'🌽','Milho e sorgo','dão energia'],[240.16,'🎃','Abóbora, couve e batata-doce','bem preparadas, complementam'],[248.49,'🌱','Dá para cultivar na propriedade']]},
+ {s:253.47,e:264.5,kind:'stop',big:['🚫','Não substituem a ração','A galinha precisa de ração equilibrada, certa para a idade e a finalidade']},
+ {s:264.67,e:279.5,kind:'tip',big:['🥚','Poedeiras precisam de cálcio','O cálcio ajuda a formar a casca dos ovos']},
+ {s:283.7,e:298.9,kind:'tip',big:['💧','Água limpa e fresca','Sempre que a galinha sentir sede']},
+ {s:299.27,e:320.4,kind:'',title:'🚰 Cuidados com a água',items:[
+   [300.01,'🔢','Bebedouros suficientes'],[302.81,'📐','Altura fácil para as aves'],[305.51,'🧽','Limpeza frequente'],
+   [307.68,'⬇️','No chão, suja mais rápido'],[312.28,'🧪','Cloração com orientação técnica']]},
+ {s:330.42,e:334.9,kind:'tip',big:['🛡️','Prevenção','Cuidar antes que a doença apareça']},
+ {s:335.05,e:360.8,kind:'',title:'🛡️ Na prática',items:[
+   [335.05,'🚷','Evite visitas no galinheiro'],[340.03,'🧹','Limpe ninhos e equipamentos'],[342.0,'🐀','Ração guardada longe de ratos','e de aves silvestres'],
+   [346.19,'🗑️','Sem lixo e água parada'],[349.11,'🐔','Galinha nova fica separada','por um tempo, em observação']]},
+ {s:364.87,e:371.7,kind:'',title:'😊 Galinha saudável',items:[
+   [364.87,'🚶','Se movimenta'],[368.12,'🌾','Procura alimento'],[369.45,'👀','Fica atenta ao redor']]},
+ {s:371.96,e:381.4,kind:'stop',title:'🚨 Sinais de alerta',items:[
+   [371.96,'😶','Quieta demais'],[374.16,'🍽️','Parou de comer'],[375.22,'💩','Diarreia'],[376.64,'😮‍💨','Dificuldade para respirar'],[378.42,'🪶','Mudança na aparência']]},
+ {s:381.58,e:388.3,kind:'',title:'✅ O que fazer',items:[
+   [381.58,'1️⃣','Separe a ave das outras'],[383.55,'2️⃣','Não leve equipamentos','de um grupo para o outro'],[386.34,'3️⃣','Procure o veterinário']]},
+ {s:388.53,e:400.8,kind:'stop',title:'🚫 Não dê por conta própria',items:[
+   [388.53,'💊','Antibióticos'],[390.09,'🪱','Remédio contra vermes'],[391.7,'🌿','Receitas caseiras'],[394.35,'⚠️','O tratamento errado','pode piorar a situação']]},
+ {s:401.08,e:417.5,kind:'',title:'🦠 Doenças que merecem atenção',chips:[
+   [402.6,'Newcastle'],[404.6,'Bouba aviária'],[405.9,'Marek'],[406.77,'Gumboro'],[407.72,'Coriza infecciosa'],[409.0,'Coccidiose']],
+   note:[415.18,'👍 Não precisa decorar os nomes!']},
+ {s:417.73,e:426.8,kind:'',title:'🛡️ O que protege a criação',items:[
+   [417.73,'🧹','Limpeza'],[420.17,'👀','Observação diária'],[421.65,'🤲','Manejo adequado'],[422.6,'💉','Vacinação, quando indicada']]},
+ {s:429.02,e:443.9,kind:'tip',big:['🗓️','Calendário de vacinas','Não existe um só para todos. Monte o seu com o veterinário']},
+ {s:444.22,e:460.1,kind:'',title:'💉 Cuidados com a vacina',items:[
+   [444.22,'🏪','Compre em local autorizado'],[447.86,'❄️','Guarde na temperatura correta'],[450.15,'👩‍⚕️','Aplique do jeito indicado','por pessoa treinada'],
+   [455.36,'⚠️','Mal guardada ou mal aplicada','pode não proteger']]},
+ {s:465.96,e:483.2,kind:'',title:'♻️ Tudo trabalha junto',cycle:[
+   [469.15,'🌱','Plantas'],[469.9,'🐔','Galinhas'],[473.2,'♻️','Esterco + compostagem'],[478.31,'🪴','Adubo']],loop:480.34},
+ {s:483.4,e:489.2,kind:'stop',big:['🚫','Esterco fresco não vai na horta','Precisa passar por tratamento adequado antes']},
+ {s:492.12,e:508.8,kind:'',title:'✅ Pequenos cuidados',items:[
+   [492.12,'🏠','Galinheiro seguro'],[493.77,'🌿','Espaço para ciscar'],[495.34,'🌽','Ração adequada'],[496.72,'💧','Água limpa'],
+   [497.75,'🐣','Atenção aos pintinhos'],[499.36,'🩺','Limpeza e orientação']]}
+];
+
+/* ---------- CAPTIONS ---------- */
+const KEYW=/^(cuidado|cuidados|planejamento|galinheiro|pintinhos|ração|água|limpa|cálcio|prevenção|vacina|vacinas|médico-veterinário|veterinário|piquetes|alerta|antibióticos|atenção|frio|calor|espaço|limpeza|adubo|compostagem|fresco)$/i;
+const lines=[];
+document.getElementById('cuesTxt').textContent.trim().split('\n').forEach(r=>{
+  const [s,e,f,t]=r.split('|'); const S=+s,E=+e;
+  const ws=t.trim().split(/\s+/); const lens=ws.map(w=>w.replace(/[^\wÀ-ú]/g,'').length+1.5);
+  const tot=lens.reduce((a,b)=>a+b,0); let acc=S; const span=(E-S);
+  const words=ws.map((w,i)=>{const o={w,s:acc}; acc+=span*lens[i]/tot; return o;});
+  const prev=lines[lines.length-1];
+  const len=prev?prev.words.map(w=>w.w).join(' ').length:0;
+  if(f==='*'||!prev||len+t.length>118) lines.push({s:S,e:E,words});
+  else {prev.words.push(...words); prev.e=E;}
+});
+
+/* ---------- DOM ---------- */
+const $=id=>document.getElementById(id);
+const app=$('app'), stage=$('stage'), au=$('au'), lineEl=$('line'), cardsEl=$('cards');
+const layers=IMGS.map(n=>{const im=new Image(); im.src=n+'.webp'; im.className='layer'; im.alt=''; im.decoding='async'; $('layers').appendChild(im); return im;});
+CH.forEach(()=>{const i=document.createElement('i'); i.appendChild(document.createElement('b')); $('segs').appendChild(i);});
+const segB=[...$('segs').querySelectorAll('b')];
+const fmt=s=>{s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+CH.forEach((c,i)=>{const mk=document.createElement('div');mk.className='mk';mk.style.left=(c[0]/DUR*100)+'%'; if(i) $('bar').appendChild(mk);});
+$('chlist').innerHTML=CH.map((c,i)=>`<button class="ch" data-i="${i}"><span class="em">${c[1]}</span><span class="t">${c[2]}</span><span class="tm">${fmt(c[0])}</span></button>`).join('');
+
+/* build cards */
+cardsEl.innerHTML=CARDS.map((c,ci)=>{
+  let h=`<div class="card ${c.kind}" data-c="${ci}">`;
+  if(c.title) h+=`<h3>${c.title}</h3>`;
+  if(c.big) h+=`<div class="big"><div class="ic">${c.big[0]}</div><div class="tx">${c.big[1]}<small>${c.big[2]}</small></div></div>`;
+  if(c.items) h+=c.items.map(it=>`<div class="it"><div class="ic">${it[1]}</div><div class="tx">${it[2]}${it[3]?`<small>${it[3]}</small>`:''}</div></div>`).join('');
+  if(c.chips) h+=`<div class="chips">${c.chips.map(x=>`<span>${x[1]}</span>`).join('')}</div>`;
+  if(c.note) h+=`<div class="note">${c.note[1]}</div>`;
+  if(c.cycle){
+    const P=[[50,15],[80,50],[50,84],[20,50]];
+    h+=`<div class="cyc"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse class="ring" cx="50" cy="50" rx="36" ry="34"/>
+      <ellipse class="ring2" cx="50" cy="50" rx="36" ry="34" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 50 50)"/></svg>`
+      +c.cycle.map((n,i)=>`<div class="nd" style="left:${P[i][0]}%;top:${P[i][1]}%"><div class="ic">${n[1]}</div><div class="tx">${n[2]}</div></div>`).join('')+`</div>`;
+  }
+  return h+'</div>';
+}).join('');
+const cardEls=[...cardsEl.children];
+
+/* ---------- RENDER ---------- */
+let W=0,H=0,cardH=0,lastLine=-1,lastCard=-2,lastCh=-1,camOff=0;
+function resize(){const r=stage.getBoundingClientRect();W=r.width;H=r.height;}
+addEventListener('resize',resize); resize();
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const lerp=(a,b,e)=>a+(b-a)*e;
+function kfIndex(t){let k=0;for(let i=0;i<KF.length;i++){if(KF[i].t<=t)k=i;else break;}return k;}
+function drift(k,t){const K=KF[k],N=KF[k+1];const span=N?N.t-K.t:20;return K.z*(1+0.06*Math.min(Math.max((t-K.t)/span,0),1));}
+function place(layer,x,y,z,op){
+  const s0=Math.max(W/IW,H/IH)*z;
+  const top=56, bottom=cardH?cardH+18:0;
+  const cy=top+(H-top-bottom)/2;
+  let tx=W/2-x*s0, ty=lerp(H/2,cy,camOff)-y*s0;
+  tx=Math.min(0,Math.max(W-IW*s0,tx)); ty=Math.min(0,Math.max(H-IH*s0,ty));
+  layer.style.transform=`translate3d(${tx}px,${ty}px,0) scale(${s0})`; layer.style.opacity=op;
+}
+function renderCam(t){
+  const k=kfIndex(t),K=KF[k],P=KF[k-1],dt=t-K.t;
+  const used=new Set();
+  if(P&&P.img!==K.img&&dt<1.3){
+    place(layers[P.img],P.x,P.y,drift(k-1,t),1); used.add(P.img);
+    place(layers[K.img],K.x,K.y,drift(k,t),ease(Math.min(dt/1.3,1))); used.add(K.img);
+    layers[K.img].style.zIndex=2; layers[P.img].style.zIndex=1;
+  }else if(P&&P.img===K.img&&dt<2){
+    const e=ease(dt/2), pz=drift(k-1,K.t);
+    place(layers[K.img],lerp(P.x,K.x,e),lerp(P.y,K.y,e),lerp(pz,drift(k,t),e),1); used.add(K.img); layers[K.img].style.zIndex=2;
+  }else{ place(layers[K.img],K.x,K.y,drift(k,t),1); used.add(K.img); layers[K.img].style.zIndex=2; }
+  layers.forEach((l,i)=>{if(!used.has(i)) l.style.opacity=0;});
+}
+function renderLine(t){
+  let li=-1; for(let i=0;i<lines.length;i++){ if(lines[i].s<=t+0.12) li=i; else break; }
+  if(li<0) li=0;
+  if(li!==lastLine){
+    lastLine=li;
+    lineEl.innerHTML=lines[li].words.map(w=>`<span class="w${KEYW.test(w.w.replace(/[^\wÀ-ú-]/g,''))?' key':''}">${w.w}</span>`).join(' ');
+    lineEl.classList.remove('in'); void lineEl.offsetWidth; lineEl.classList.add('in');
+  }
+  const ws=lines[li].words, sp=lineEl.children;
+  for(let i=0;i<ws.length;i++){ const on=t>=ws[i].s-0.05; if(sp[i].classList.contains('on')!==on) sp[i].classList.toggle('on',on); }
+}
+function renderCards(t){
+  let ci=-1; CARDS.forEach((c,i)=>{ if(t>=c.s&&t<c.e) ci=i; });
+  if(ci!==lastCard){ cardEls.forEach((el,i)=>el.classList.toggle('on',i===ci)); lastCard=ci; }
+  const target=ci>=0?1:0;
+  cardH=ci>=0?cardEls[ci].offsetHeight:cardH;
+  camOff+= (target-camOff)*0.06; if(ci<0&&camOff<0.01){camOff=0;}
+  if(ci<0) return;
+  const c=CARDS[ci], el=cardEls[ci];
+  const setOn=(nodes,list,idx)=>{ let nowI=-1; list.forEach((it,i)=>{ if(t>=it[0]) nowI=i; });
+    [...nodes].forEach((n,i)=>{ const on=t>=list[i][0]; n.classList.toggle('on',on); n.classList.toggle('now',i===nowI); }); };
+  if(c.items) setOn(el.querySelectorAll('.it'),c.items);
+  if(c.chips) setOn(el.querySelectorAll('.chips span'),c.chips);
+  if(c.note) el.querySelector('.note').classList.toggle('on',t>=c.note[0]);
+  if(c.cycle){ setOn(el.querySelectorAll('.nd'),c.cycle);
+    let n=0; c.cycle.forEach(x=>{if(t>=x[0])n++;}); let frac=n/4; if(t>=c.loop) frac=1;
+    el.querySelector('.ring2').style.strokeDashoffset=100-frac*100;
+    if(t>=c.loop) el.querySelectorAll('.nd')[0].classList.add('now');
+  }
+}
+function renderChapter(t){
+  let ci=0; CH.forEach((c,i)=>{if(t>=c[0])ci=i;});
+  CH.forEach((c,i)=>{ const st=c[0], en=CH[i+1]?CH[i+1][0]:DUR; segB[i].style.width=(Math.min(Math.max((t-st)/(en-st),0),1)*100)+'%'; });
+  if(ci!==lastCh){ lastCh=ci; const chip=$('chip'); chip.querySelector('.em').textContent=CH[ci][1]; chip.querySelector('.tt').textContent=CH[ci][2];
+    chip.querySelector('.n').textContent=(ci+1)+'/'+CH.length; chip.classList.remove('swap'); void chip.offsetWidth; chip.classList.add('swap');
+    document.querySelectorAll('.ch').forEach((b,i)=>b.classList.toggle('cur',i===ci)); }
+}
+function renderBar(t){
+  const p=Math.min(t/DUR,1)*100; $('bar').querySelector('.fl').style.width=p+'%'; $('bar').querySelector('.th').style.left=p+'%';
+  $('tc').textContent=fmt(t);
+}
+let dragging=false, dragT=0;
+function frame(){
+  const t=dragging?dragT:(window.__T!=null?window.__T:au.currentTime);
+  if(W===0) resize();
+  renderCards(t); renderCam(t); renderLine(t); renderChapter(t); renderBar(t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- CONTROLS ---------- */
+function play(){ const p=au.play(); if(p&&p.catch) p.catch(()=>{}); }
+function toggle(){ au.paused?play():au.pause(); }
+au.addEventListener('play',()=>{app.classList.add('playing');app.classList.remove('paused');});
+au.addEventListener('pause',()=>{app.classList.remove('playing');app.classList.add('paused');});
+au.addEventListener('waiting',()=>$('loading').classList.add('on'));
+['playing','canplay','pause','seeked'].forEach(ev=>au.addEventListener(ev,()=>$('loading').classList.remove('on')));
+au.addEventListener('ended',()=>{$('end').classList.remove('hide');});
+au.addEventListener('loadedmetadata',()=>{$('td').textContent=fmt(au.duration||DUR);});
+$('play').onclick=toggle;
+stage.addEventListener('click',e=>{ if(e.target.closest('#chip')) return; toggle(); });
+$('back').onclick=()=>{au.currentTime=Math.max(0,au.currentTime-10);};
+$('goBtn').onclick=()=>{$('start').classList.add('hide'); resize(); play();};
+$('again').onclick=()=>{$('end').classList.add('hide'); au.currentTime=0; play();};
+function openSheet(){$('sheet').classList.add('on');}
+function closeSheet(){$('sheet').classList.remove('on');}
+$('parts').onclick=openSheet; $('chip').onclick=e=>{e.stopPropagation();openSheet();};
+$('endParts').onclick=()=>{$('end').classList.add('hide');openSheet();};
+$('sheet').querySelector('.dim').onclick=closeSheet;
+$('chlist').onclick=e=>{const b=e.target.closest('.ch'); if(!b) return; au.currentTime=CH[+b.dataset.i][0]+0.01; closeSheet();
+  $('start').classList.add('hide'); $('end').classList.add('hide'); play();};
+const bar=$('bar');
+function barT(e){const r=bar.getBoundingClientRect();return Math.min(Math.max((e.clientX-r.left)/r.width,0),1)*DUR;}
+bar.addEventListener('pointerdown',e=>{dragging=true;dragT=barT(e);bar.setPointerCapture(e.pointerId);});
+bar.addEventListener('pointermove',e=>{if(dragging)dragT=barT(e);});
+const endDrag=e=>{if(!dragging)return;dragging=false;au.currentTime=dragT;};
+bar.addEventListener('pointerup',endDrag); bar.addEventListener('pointercancel',endDrag);
+document.addEventListener('keydown',e=>{ if(e.code==='Space'){e.preventDefault(); if(!$('start').classList.contains('hide')) $('goBtn').click(); else toggle();}
+  if(e.code==='ArrowLeft') au.currentTime=Math.max(0,au.currentTime-10); if(e.code==='ArrowRight') au.currentTime=Math.min(DUR,au.currentTime+10); });
+if('mediaSession' in navigator){ try{
+  navigator.mediaSession.metadata=new MediaMetadata({title:'Criação de galinhas caipiras',artist:'Saberes, cuidados e práticas sustentáveis',artwork:[{src:'01.webp',sizes:'1672x941',type:'image/webp'}]});
+  navigator.mediaSession.setActionHandler('play',play); navigator.mediaSession.setActionHandler('pause',()=>au.pause());
+  navigator.mediaSession.setActionHandler('seekbackward',()=>{au.currentTime=Math.max(0,au.currentTime-10);});
+}catch(e){} }
+})();
+</script>
+</body>
+</html>
